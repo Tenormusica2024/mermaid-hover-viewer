@@ -144,6 +144,42 @@
             flex: 1;
             min-width: 300px;
             gap: 0;
+            transition: flex-direction 0.3s ease;
+        }
+
+        /* Horizontal layout mode for right column */
+        .right-column.horizontal-layout {
+            flex-direction: row;
+        }
+
+        .right-column.horizontal-layout .diagram-panel {
+            flex: 2;
+            min-width: 200px;
+            min-height: unset;
+            height: 100%;
+        }
+
+        .right-column.horizontal-layout .detail-panel {
+            flex: 1;
+            min-width: 200px;
+            min-height: unset;
+            height: 100%;
+        }
+
+        .right-column.horizontal-layout #resizer-right-v {
+            width: 12px;
+            height: auto;
+            cursor: col-resize;
+            margin: 0 2px;
+        }
+
+        .right-column.horizontal-layout #resizer-right-v::after {
+            left: 5px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            height: auto;
+            border-radius: 1px;
         }
 
         .diagram-panel {
@@ -431,7 +467,7 @@
     <div class="header">
         <div>
             <h1>Mermaid Hover Detail Viewer</h1>
-            <p>ノードにマウスオーバーで詳細を表示 | 枠線ドラッグでサイズ調整</p>
+            <p>ノードにマウスオーバーで詳細表示 | 枠線ドラッグでサイズ・レイアウト調整</p>
         </div>
         <div style="display: flex; align-items: center; gap: 15px;">
             <select id="theme-selector" onchange="changeTheme(this.value)">
@@ -982,7 +1018,6 @@
         function initResizers() {
             const mainResizer = document.getElementById('resizer-main');
             const leftVResizer = document.getElementById('resizer-left-v');
-            const rightVResizer = document.getElementById('resizer-right-v');
 
             // Main horizontal resizer (between left and right columns)
             initHorizontalResizer(mainResizer, 'left-column', 'right-column');
@@ -990,8 +1025,8 @@
             // Left vertical resizer (between mermaid code and details)
             initVerticalResizer(leftVResizer, 'panel-mermaid', 'panel-details');
 
-            // Right vertical resizer (between diagram and detail)
-            initVerticalResizer(rightVResizer, 'panel-diagram', 'panel-detail');
+            // Right column resizer with layout switching capability
+            initRightColumnResizer();
         }
 
         function initHorizontalResizer(resizer, leftId, rightId) {
@@ -1077,6 +1112,182 @@
                 document.removeEventListener('mousemove', onMouseMove);
                 document.removeEventListener('mouseup', onMouseUp);
             }
+        }
+
+        // Special resizer for right column that supports layout switching
+        function initRightColumnResizer() {
+            const resizer = document.getElementById('resizer-right-v');
+            const rightColumn = document.getElementById('right-column');
+            const diagramPanel = document.getElementById('panel-diagram');
+            const detailPanel = document.getElementById('panel-detail');
+
+            let startX, startY, startDiagramSize, startDetailSize;
+            let isHorizontal = false;
+
+            resizer.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                startX = e.clientX;
+                startY = e.clientY;
+                isHorizontal = rightColumn.classList.contains('horizontal-layout');
+
+                if (isHorizontal) {
+                    startDiagramSize = diagramPanel.offsetWidth;
+                    startDetailSize = detailPanel.offsetWidth;
+                    document.body.classList.add('resizing');
+                } else {
+                    startDiagramSize = diagramPanel.offsetHeight;
+                    startDetailSize = detailPanel.offsetHeight;
+                    document.body.classList.add('resizing', 'row-resize');
+                }
+
+                resizer.classList.add('active');
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+
+            function onMouseMove(e) {
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+
+                if (isHorizontal) {
+                    // Horizontal layout - resize widths
+                    const totalWidth = startDiagramSize + startDetailSize;
+                    let newDiagramWidth = startDiagramSize + dx;
+                    let newDetailWidth = startDetailSize - dx;
+
+                    const minWidth = 150;
+                    if (newDiagramWidth < minWidth) {
+                        newDiagramWidth = minWidth;
+                        newDetailWidth = totalWidth - minWidth;
+                    }
+                    if (newDetailWidth < minWidth) {
+                        newDetailWidth = minWidth;
+                        newDiagramWidth = totalWidth - minWidth;
+                    }
+
+                    // Check if dragging down to switch back to vertical
+                    if (dy > 80) {
+                        switchToVerticalLayout();
+                        return;
+                    }
+
+                    diagramPanel.style.flex = 'none';
+                    detailPanel.style.flex = 'none';
+                    diagramPanel.style.width = newDiagramWidth + 'px';
+                    diagramPanel.style.height = '100%';
+                    detailPanel.style.width = newDetailWidth + 'px';
+                    detailPanel.style.height = '100%';
+                } else {
+                    // Vertical layout - resize heights
+                    const totalHeight = startDiagramSize + startDetailSize;
+                    let newDiagramHeight = startDiagramSize + dy;
+                    let newDetailHeight = startDetailSize - dy;
+
+                    const minHeight = 80;
+                    if (newDiagramHeight < minHeight) {
+                        newDiagramHeight = minHeight;
+                        newDetailHeight = totalHeight - minHeight;
+                    }
+                    if (newDetailHeight < minHeight) {
+                        newDetailHeight = minHeight;
+                        newDiagramHeight = totalHeight - minHeight;
+                    }
+
+                    // Check if dragging right to switch to horizontal layout
+                    if (dx > 100) {
+                        switchToHorizontalLayout();
+                        return;
+                    }
+
+                    diagramPanel.style.flex = 'none';
+                    detailPanel.style.flex = 'none';
+                    diagramPanel.style.height = newDiagramHeight + 'px';
+                    detailPanel.style.height = newDetailHeight + 'px';
+                }
+            }
+
+            function switchToHorizontalLayout() {
+                rightColumn.classList.add('horizontal-layout');
+                isHorizontal = true;
+
+                // Reset sizes for horizontal layout
+                diagramPanel.style.flex = '2';
+                diagramPanel.style.height = '100%';
+                diagramPanel.style.width = '';
+                detailPanel.style.flex = '1';
+                detailPanel.style.height = '100%';
+                detailPanel.style.width = '';
+
+                // Update start values
+                startX = startX;
+                startDiagramSize = diagramPanel.offsetWidth;
+                startDetailSize = detailPanel.offsetWidth;
+
+                document.body.classList.remove('row-resize');
+
+                // Show visual feedback
+                showLayoutHint('Horizontal Layout');
+            }
+
+            function switchToVerticalLayout() {
+                rightColumn.classList.remove('horizontal-layout');
+                isHorizontal = false;
+
+                // Reset sizes for vertical layout
+                diagramPanel.style.flex = '2';
+                diagramPanel.style.width = '';
+                diagramPanel.style.height = '';
+                detailPanel.style.flex = '1';
+                detailPanel.style.width = '';
+                detailPanel.style.height = '';
+
+                // Update start values
+                startY = startY;
+                startDiagramSize = diagramPanel.offsetHeight;
+                startDetailSize = detailPanel.offsetHeight;
+
+                document.body.classList.add('row-resize');
+
+                // Show visual feedback
+                showLayoutHint('Vertical Layout');
+            }
+
+            function onMouseUp() {
+                document.body.classList.remove('resizing', 'row-resize');
+                resizer.classList.remove('active');
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            }
+        }
+
+        // Visual feedback for layout switch
+        function showLayoutHint(text) {
+            let hint = document.getElementById('layout-hint');
+            if (!hint) {
+                hint = document.createElement('div');
+                hint.id = 'layout-hint';
+                hint.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: rgba(168, 85, 247, 0.9);
+                    color: white;
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    font-size: 14px;
+                    z-index: 1000;
+                    pointer-events: none;
+                    transition: opacity 0.3s ease;
+                `;
+                document.body.appendChild(hint);
+            }
+            hint.textContent = text;
+            hint.style.opacity = '1';
+            setTimeout(() => {
+                hint.style.opacity = '0';
+            }, 1000);
         }
 
         // ========== Initialization ==========
