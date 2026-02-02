@@ -1210,18 +1210,18 @@
                 rightColumn.classList.add('horizontal-layout');
                 isHorizontal = true;
 
-                // Reset sizes for horizontal layout
-                diagramPanel.style.flex = '2';
-                diagramPanel.style.height = '100%';
-                diagramPanel.style.width = '';
-                detailPanel.style.flex = '1';
-                detailPanel.style.height = '100%';
-                detailPanel.style.width = '';
+                // Completely reset all inline styles for horizontal layout
+                diagramPanel.style.cssText = '';
+                detailPanel.style.cssText = '';
 
-                // Update start values
-                startX = startX;
-                startDiagramSize = diagramPanel.offsetWidth;
-                startDetailSize = detailPanel.offsetWidth;
+                // Force reflow
+                void rightColumn.offsetHeight;
+
+                // Update start values after DOM update
+                setTimeout(() => {
+                    startDiagramSize = diagramPanel.offsetWidth;
+                    startDetailSize = detailPanel.offsetWidth;
+                }, 0);
 
                 document.body.classList.remove('row-resize');
 
@@ -1233,18 +1233,18 @@
                 rightColumn.classList.remove('horizontal-layout');
                 isHorizontal = false;
 
-                // Reset sizes for vertical layout
-                diagramPanel.style.flex = '2';
-                diagramPanel.style.width = '';
-                diagramPanel.style.height = '';
-                detailPanel.style.flex = '1';
-                detailPanel.style.width = '';
-                detailPanel.style.height = '';
+                // Completely reset all inline styles for vertical layout
+                diagramPanel.style.cssText = '';
+                detailPanel.style.cssText = '';
 
-                // Update start values
-                startY = startY;
-                startDiagramSize = diagramPanel.offsetHeight;
-                startDetailSize = detailPanel.offsetHeight;
+                // Force reflow
+                void rightColumn.offsetHeight;
+
+                // Update start values after DOM update
+                setTimeout(() => {
+                    startDiagramSize = diagramPanel.offsetHeight;
+                    startDetailSize = detailPanel.offsetHeight;
+                }, 0);
 
                 document.body.classList.add('row-resize');
 
