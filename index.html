@@ -71,11 +71,12 @@
 
         .panel {
             background: #16213e;
-            border-radius: 10px;
+            border-radius: 12px;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
         }
 
         .panel-header {
@@ -297,16 +298,20 @@
             position: relative;
         }
 
+        :root {
+            --resizer-accent: rgba(102, 126, 234, 0.5);
+        }
+
         .resizer::after {
             content: '';
             position: absolute;
-            background: rgba(102, 126, 234, 0);
+            background: transparent;
             transition: background 0.2s;
         }
 
         .resizer:hover::after,
         .resizer.active::after {
-            background: rgba(102, 126, 234, 0.5);
+            background: var(--resizer-accent);
         }
 
         .resizer-horizontal {
@@ -372,6 +377,36 @@
             margin-left: 10px;
         }
 
+        /* Theme selector styling */
+        #theme-selector {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.15);
+            color: white;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        #theme-selector:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-1px);
+        }
+
+        #theme-selector option {
+            background: #1a1a2e;
+            color: #eee;
+            padding: 8px;
+        }
+
+        /* Global transitions for theme switching */
+        body, .header, .panel, .panel-header, #diagram-output, textarea, .detail-text, .btn {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         /* No select during resize */
         .resizing {
             user-select: none;
@@ -398,7 +433,13 @@
             <h1>Mermaid Hover Detail Viewer</h1>
             <p>ノードにマウスオーバーで詳細を表示 | 枠線ドラッグでサイズ調整</p>
         </div>
-        <div>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <select id="theme-selector" onchange="changeTheme(this.value)">
+                <option value="default">Default Theme</option>
+                <option value="glassmorphism">Glassmorphism Dark</option>
+                <option value="minimal">Soft Minimal Light</option>
+                <option value="neogradient">Neo Gradient</option>
+            </select>
             <button class="btn" onclick="renderDiagram()">Render</button>
             <span class="shortcut-hint">Ctrl+Enter</span>
         </div>
@@ -1053,6 +1094,240 @@
                 }
             });
         });
+
+        // ========== Theme System ==========
+
+        const themes = {
+            default: {
+                name: 'Default',
+                body: { background: '#1a1a2e' },
+                header: { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
+                panel: { background: '#16213e', border: 'rgba(255,255,255,0.1)' },
+                panelHeader: { background: 'rgba(255,255,255,0.05)', color: '#94a3b8' },
+                diagram: { background: '#f8fafc', dots: '#e2e8f0' },
+                text: { primary: '#eee', secondary: '#94a3b8' },
+                accent: '#667eea',
+                mermaid: {
+                    theme: 'base',
+                    primaryColor: '#6366f1',
+                    primaryTextColor: '#ffffff',
+                    primaryBorderColor: '#4f46e5',
+                    lineColor: '#94a3b8',
+                    secondaryColor: '#f1f5f9',
+                    background: '#ffffff'
+                }
+            },
+            glassmorphism: {
+                name: 'Glassmorphism Dark',
+                body: { background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)' },
+                header: { background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.15)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' },
+                panel: { background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.12)', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' },
+                panelHeader: { background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.8)' },
+                diagram: { background: 'rgba(255,255,255,0.95)', dots: 'rgba(168, 85, 247, 0.15)' },
+                text: { primary: '#fff', secondary: 'rgba(255,255,255,0.6)' },
+                accent: '#a855f7',
+                mermaid: {
+                    theme: 'base',
+                    primaryColor: '#a855f7',
+                    primaryTextColor: '#1e1b4b',
+                    primaryBorderColor: '#9333ea',
+                    lineColor: '#a78bfa',
+                    secondaryColor: '#faf5ff',
+                    background: '#ffffff'
+                }
+            },
+            minimal: {
+                name: 'Soft Minimal Light',
+                body: { background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)' },
+                header: { background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(10px)', borderBottom: '1px solid rgba(226, 232, 240, 0.8)', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' },
+                panel: { background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(226, 232, 240, 0.6)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)' },
+                panelHeader: { background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)', color: '#475569', borderBottom: '1px solid #e2e8f0' },
+                diagram: { background: '#ffffff', dots: '#e2e8f0' },
+                text: { primary: '#0f172a', secondary: '#64748b' },
+                accent: '#3b82f6',
+                mermaid: {
+                    theme: 'base',
+                    primaryColor: '#3b82f6',
+                    primaryTextColor: '#0f172a',
+                    primaryBorderColor: '#2563eb',
+                    lineColor: '#94a3b8',
+                    secondaryColor: '#f1f5f9',
+                    background: '#ffffff'
+                }
+            },
+            neogradient: {
+                name: 'Neo Gradient',
+                body: { background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)' },
+                header: { background: 'linear-gradient(90deg, #f472b6 0%, #a855f7 50%, #38bdf8 100%)', boxShadow: '0 4px 30px rgba(244, 114, 182, 0.3)' },
+                panel: { background: 'linear-gradient(145deg, rgba(30, 27, 75, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%)', border: '1px solid rgba(168, 85, 247, 0.3)', boxShadow: '0 8px 32px rgba(168, 85, 247, 0.15)' },
+                panelHeader: { background: 'linear-gradient(90deg, rgba(244, 114, 182, 0.15), rgba(56, 189, 248, 0.15))', color: '#f9a8d4' },
+                diagram: { background: 'linear-gradient(135deg, #fefefe 0%, #fdf4ff 50%, #f0f9ff 100%)', dots: 'rgba(168, 85, 247, 0.12)' },
+                text: { primary: '#fff', secondary: '#c4b5fd' },
+                accent: '#f472b6',
+                mermaid: {
+                    theme: 'base',
+                    primaryColor: '#a855f7',
+                    primaryTextColor: '#1e1b4b',
+                    primaryBorderColor: '#9333ea',
+                    lineColor: '#c4b5fd',
+                    secondaryColor: '#fdf4ff',
+                    background: '#ffffff'
+                }
+            }
+        };
+
+        let currentTheme = 'default';
+
+        function changeTheme(themeName) {
+            currentTheme = themeName;
+            const theme = themes[themeName];
+            if (!theme) return;
+
+            const body = document.body;
+            const header = document.querySelector('.header');
+            const panels = document.querySelectorAll('.panel');
+            const panelHeaders = document.querySelectorAll('.panel-header');
+            const diagramOutput = document.getElementById('diagram-output');
+            const themeSelector = document.getElementById('theme-selector');
+            const btn = document.querySelector('.btn');
+            const shortcutHint = document.querySelector('.shortcut-hint');
+
+            // Apply body styles
+            Object.assign(body.style, theme.body);
+
+            // Apply header styles
+            header.style.background = theme.header.background;
+            header.style.backdropFilter = theme.header.backdropFilter || 'none';
+            header.style.borderBottom = theme.header.borderBottom || 'none';
+            header.style.boxShadow = theme.header.boxShadow || '0 4px 20px rgba(0,0,0,0.3)';
+            if (theme.header.border) header.style.border = theme.header.border;
+
+            // Apply panel styles
+            panels.forEach(panel => {
+                panel.style.background = theme.panel.background;
+                panel.style.backdropFilter = theme.panel.backdropFilter || 'none';
+                panel.style.border = theme.panel.border || 'none';
+                panel.style.boxShadow = theme.panel.boxShadow || '0 8px 32px rgba(0,0,0,0.3)';
+            });
+
+            // Apply panel header styles
+            panelHeaders.forEach(ph => {
+                ph.style.background = theme.panelHeader.background;
+                ph.style.color = theme.panelHeader.color;
+                ph.style.borderBottom = theme.panelHeader.borderBottom || '1px solid rgba(255,255,255,0.1)';
+            });
+
+            // Apply diagram output styles
+            if (theme.diagram.dots) {
+                diagramOutput.style.background = `radial-gradient(circle at 1px 1px, ${theme.diagram.dots} 1px, transparent 0)`;
+                diagramOutput.style.backgroundSize = '20px 20px';
+                diagramOutput.style.backgroundColor = theme.diagram.background;
+            } else {
+                diagramOutput.style.background = theme.diagram.background;
+            }
+
+            // Theme-specific styling for light/dark modes
+            const isLight = themeName === 'minimal';
+
+            // Update header text colors
+            document.querySelectorAll('.header h1').forEach(el => el.style.color = isLight ? '#1e293b' : '#fff');
+            document.querySelectorAll('.header p').forEach(el => el.style.color = isLight ? '#64748b' : 'rgba(255,255,255,0.85)');
+
+            // Update textarea styles
+            document.querySelectorAll('textarea').forEach(el => {
+                el.style.color = isLight ? '#1e293b' : '#a8e6cf';
+                el.style.background = isLight ? '#ffffff' : '#0f0f23';
+                el.style.borderColor = isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)';
+            });
+
+            // Update detail panel text
+            document.querySelectorAll('.detail-text').forEach(el => {
+                el.style.color = isLight ? '#475569' : '#e2e8f0';
+            });
+
+            // Update theme selector styling
+            themeSelector.style.background = isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.15)';
+            themeSelector.style.color = isLight ? '#1e293b' : '#fff';
+            themeSelector.style.borderColor = isLight ? '#cbd5e1' : 'rgba(255,255,255,0.3)';
+
+            // Update button styling
+            btn.style.background = isLight ? theme.accent : 'rgba(255,255,255,0.2)';
+            btn.style.color = isLight ? '#fff' : '#fff';
+            btn.style.borderColor = isLight ? theme.accent : 'rgba(255,255,255,0.3)';
+
+            // Update shortcut hint
+            shortcutHint.style.color = isLight ? '#64748b' : 'rgba(255,255,255,0.6)';
+
+            // Update zoom controls
+            document.querySelectorAll('.zoom-btn').forEach(el => {
+                el.style.background = `rgba(${isLight ? '59, 130, 246' : '102, 126, 234'}, 0.9)`;
+            });
+
+            // Update detail node ID badge based on theme
+            const detailNodeId = document.querySelector('.detail-node-id');
+            if (detailNodeId) {
+                if (themeName === 'glassmorphism') {
+                    detailNodeId.style.background = 'linear-gradient(135deg, #a855f7, #ec4899, #f97316)';
+                    detailNodeId.style.color = '#fff';
+                } else if (themeName === 'neogradient') {
+                    detailNodeId.style.background = 'linear-gradient(135deg, #f472b6, #a855f7, #38bdf8)';
+                    detailNodeId.style.color = '#fff';
+                } else if (themeName === 'minimal') {
+                    detailNodeId.style.background = 'linear-gradient(135deg, #3b82f6, #6366f1)';
+                    detailNodeId.style.color = '#fff';
+                } else {
+                    detailNodeId.style.background = 'linear-gradient(135deg, #c4b5fd, #f9a8d4, #fcd34d)';
+                    detailNodeId.style.color = '#4c1d95';
+                }
+            }
+
+            // Update resizer accent colors
+            const accentColors = {
+                default: 'rgba(102, 126, 234, 0.5)',
+                glassmorphism: 'rgba(168, 85, 247, 0.5)',
+                minimal: 'rgba(59, 130, 246, 0.5)',
+                neogradient: 'rgba(244, 114, 182, 0.5)'
+            };
+            document.documentElement.style.setProperty('--resizer-accent', accentColors[themeName] || accentColors.default);
+
+            // Update placeholder text color
+            document.querySelectorAll('.detail-placeholder').forEach(el => {
+                el.style.color = isLight ? '#94a3b8' : '#64748b';
+            });
+
+            // Reinitialize Mermaid with new theme and re-render
+            updateMermaidTheme(theme.mermaid);
+            renderDiagram();
+        }
+
+        function updateMermaidTheme(mermaidTheme) {
+            mermaid.initialize({
+                startOnLoad: false,
+                theme: mermaidTheme.theme,
+                securityLevel: 'loose',
+                flowchart: {
+                    useMaxWidth: false,
+                    htmlLabels: true,
+                    curve: 'basis',
+                    padding: 20,
+                    nodeSpacing: 50,
+                    rankSpacing: 60
+                },
+                themeVariables: {
+                    primaryColor: mermaidTheme.primaryColor,
+                    primaryTextColor: mermaidTheme.primaryTextColor,
+                    primaryBorderColor: mermaidTheme.primaryBorderColor,
+                    lineColor: mermaidTheme.lineColor,
+                    secondaryColor: mermaidTheme.secondaryColor,
+                    background: mermaidTheme.background,
+                    mainBkg: mermaidTheme.background,
+                    nodeBorder: mermaidTheme.primaryBorderColor,
+                    edgeLabelBackground: 'transparent',
+                    fontFamily: '"Segoe UI", "Meiryo", sans-serif',
+                    fontSize: '14px'
+                }
+            });
+        }
     </script>
 </body>
 </html>
