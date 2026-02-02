@@ -436,7 +436,7 @@
         <div style="display: flex; align-items: center; gap: 15px;">
             <select id="theme-selector" onchange="changeTheme(this.value)">
                 <option value="default">Default Theme</option>
-                <option value="glassmorphism">Glassmorphism Dark</option>
+                <option value="glassmorphism" selected>Glassmorphism Dark</option>
                 <option value="minimal">Soft Minimal Light</option>
                 <option value="neogradient">Neo Gradient</option>
             </select>
@@ -1083,7 +1083,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             initResizers();
-            renderDiagram();
+            changeTheme('glassmorphism');
         });
 
         // Ctrl+Enter to render
@@ -1176,7 +1176,7 @@
             }
         };
 
-        let currentTheme = 'default';
+        let currentTheme = 'glassmorphism';
 
         function changeTheme(themeName) {
             currentTheme = themeName;
