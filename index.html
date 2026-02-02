@@ -1123,12 +1123,14 @@
 
             let startX, startY, startDiagramSize, startDetailSize;
             let isHorizontal = false;
+            let layoutSwitching = false; // Flag to prevent style changes during layout switch
 
             resizer.addEventListener('mousedown', (e) => {
                 e.preventDefault();
                 startX = e.clientX;
                 startY = e.clientY;
                 isHorizontal = rightColumn.classList.contains('horizontal-layout');
+                layoutSwitching = false;
 
                 if (isHorizontal) {
                     startDiagramSize = diagramPanel.offsetWidth;
@@ -1146,10 +1148,19 @@
             });
 
             function onMouseMove(e) {
+                // Skip if layout is switching
+                if (layoutSwitching) return;
+
                 const dx = e.clientX - startX;
                 const dy = e.clientY - startY;
 
                 if (isHorizontal) {
+                    // Check if dragging down to switch back to vertical
+                    if (dy > 80) {
+                        switchToVerticalLayout();
+                        return;
+                    }
+
                     // Horizontal layout - resize widths
                     const totalWidth = startDiagramSize + startDetailSize;
                     let newDiagramWidth = startDiagramSize + dx;
@@ -1165,12 +1176,6 @@
                         newDiagramWidth = totalWidth - minWidth;
                     }
 
-                    // Check if dragging down to switch back to vertical
-                    if (dy > 80) {
-                        switchToVerticalLayout();
-                        return;
-                    }
-
                     diagramPanel.style.flex = 'none';
                     detailPanel.style.flex = 'none';
                     diagramPanel.style.width = newDiagramWidth + 'px';
@@ -1178,6 +1183,12 @@
                     detailPanel.style.width = newDetailWidth + 'px';
                     detailPanel.style.height = '100%';
                 } else {
+                    // Check if dragging right to switch to horizontal layout
+                    if (dx > 100) {
+                        switchToHorizontalLayout();
+                        return;
+                    }
+
                     // Vertical layout - resize heights
                     const totalHeight = startDiagramSize + startDetailSize;
                     let newDiagramHeight = startDiagramSize + dy;
@@ -1193,12 +1204,6 @@
                         newDiagramHeight = totalHeight - minHeight;
                     }
 
-                    // Check if dragging right to switch to horizontal layout
-                    if (dx > 100) {
-                        switchToHorizontalLayout();
-                        return;
-                    }
-
                     diagramPanel.style.flex = 'none';
                     detailPanel.style.flex = 'none';
                     diagramPanel.style.height = newDiagramHeight + 'px';
@@ -1207,6 +1212,7 @@
             }
 
             function switchToHorizontalLayout() {
+                layoutSwitching = true;
                 rightColumn.classList.add('horizontal-layout');
                 isHorizontal = true;
 
@@ -1214,22 +1220,13 @@
                 diagramPanel.style.cssText = '';
                 detailPanel.style.cssText = '';
 
-                // Force reflow
-                void rightColumn.offsetHeight;
-
-                // Update start values after DOM update
-                setTimeout(() => {
-                    startDiagramSize = diagramPanel.offsetWidth;
-                    startDetailSize = detailPanel.offsetWidth;
-                }, 0);
-
-                document.body.classList.remove('row-resize');
-
-                // Show visual feedback
+                // End current drag operation and show feedback
+                endDragAndReset();
                 showLayoutHint('Horizontal Layout');
             }
 
             function switchToVerticalLayout() {
+                layoutSwitching = true;
                 rightColumn.classList.remove('horizontal-layout');
                 isHorizontal = false;
 
@@ -1237,19 +1234,24 @@
                 diagramPanel.style.cssText = '';
                 detailPanel.style.cssText = '';
 
-                // Force reflow
-                void rightColumn.offsetHeight;
-
-                // Update start values after DOM update
-                setTimeout(() => {
-                    startDiagramSize = diagramPanel.offsetHeight;
-                    startDetailSize = detailPanel.offsetHeight;
-                }, 0);
-
-                document.body.classList.add('row-resize');
-
-                // Show visual feedback
+                // End current drag operation and show feedback
+                endDragAndReset();
                 showLayoutHint('Vertical Layout');
+            }
+
+            function endDragAndReset() {
+                // Remove event listeners to stop drag
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+
+                // Clean up UI state
+                document.body.classList.remove('resizing', 'row-resize');
+                resizer.classList.remove('active');
+
+                // Reset after a short delay to allow CSS transition
+                setTimeout(() => {
+                    layoutSwitching = false;
+                }, 100);
             }
 
             function onMouseUp() {
