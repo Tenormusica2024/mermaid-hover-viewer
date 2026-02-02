@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mermaid Hover Detail Viewer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/panzoom@9/dist/panzoom.min.js"></script>
     <style>
@@ -410,34 +411,34 @@
                 <div class="panel-header">Mermaid Code</div>
                 <div class="panel-content">
                     <textarea id="mermaid-input" placeholder="flowchart LR
-    A[Start] --> B{Decision}">flowchart LR
-    START([User Access]) --> AUTH{Authenticated?}
+    A[fa:fa-play Start] --> B{Decision}">flowchart LR
+    START([fa:fa-user User]) --> AUTH{fa:fa-lock Auth?}
 
-    AUTH -->|No| LOGIN[Login Page]
-    LOGIN --> VALIDATE{Valid?}
-    VALIDATE -->|No| ERROR[Error]
+    AUTH -->|No| LOGIN[fa:fa-sign-in-alt Login]
+    LOGIN --> VALIDATE{fa:fa-check Valid?}
+    VALIDATE -->|No| ERROR[fa:fa-times Error]
     ERROR --> LOGIN
-    VALIDATE -->|Yes| SESSION[Session]
+    VALIDATE -->|Yes| SESSION[fa:fa-key Session]
 
-    AUTH -->|Yes| CHECK{Permission}
+    AUTH -->|Yes| CHECK{fa:fa-shield-alt Permission}
     SESSION --> CHECK
 
-    CHECK -->|Admin| ADMIN[Admin]
-    CHECK -->|User| USER[User]
-    CHECK -->|Guest| GUEST[Guest]
+    CHECK -->|Admin| ADMIN[fa:fa-user-shield Admin]
+    CHECK -->|User| USER[fa:fa-user User]
+    CHECK -->|Guest| GUEST[fa:fa-user-clock Guest]
 
-    ADMIN --> AUDIT[Log]
+    ADMIN --> AUDIT[fa:fa-clipboard-list Log]
     USER --> AUDIT
     GUEST --> AUDIT
 
-    AUDIT --> API{API}
-    API -->|OK| RENDER[Render]
-    API -->|Fail| RETRY{Retry?}
+    AUDIT --> API{fa:fa-server API}
+    API -->|OK| RENDER[fa:fa-paint-brush Render]
+    API -->|Fail| RETRY{fa:fa-redo Retry?}
     RETRY -->|Yes| API
-    RETRY -->|No| CACHE[Cache]
+    RETRY -->|No| CACHE[fa:fa-database Cache]
     CACHE --> RENDER
 
-    RENDER --> END([Done])
+    RENDER --> END([fa:fa-flag-checkered Done])
 
     %% Pastel Node Styles
     classDef startEnd fill:#d1fae5,stroke:#6ee7b7,color:#065f46,stroke-width:2px
