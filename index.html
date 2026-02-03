@@ -833,17 +833,15 @@
             });
 
             // Color edges based on source node
-            const edgePaths = svgElement.querySelectorAll('.edgePath path');
-            edgePaths.forEach(path => {
-                const parent = path.closest('.edgePath');
-                if (!parent) return;
+            // Mermaid uses .edgePaths > path with class "LS-{SourceNode} LE-{TargetNode}"
+            const edgePaths = svgElement.querySelectorAll('.edgePaths path');
+            edgePaths.forEach((path) => {
+                const classList = path.getAttribute('class') || '';
 
-                // Try to extract source node from edge ID or class
-                const edgeId = parent.id || '';
-                // Mermaid edge IDs often follow pattern: L-NODEA-NODEB or flowchart-xxx-NODEA-xxx-NODEB
-                const match = edgeId.match(/L-([A-Za-z0-9_]+)-|flowchart-[^-]+-([A-Za-z0-9_]+)-/);
-                if (match) {
-                    const sourceNodeId = match[1] || match[2];
+                // Extract source node from "LS-{NodeId}" pattern in class
+                const sourceMatch = classList.match(/LS-([A-Za-z0-9_]+)/);
+                if (sourceMatch && sourceMatch[1]) {
+                    const sourceNodeId = sourceMatch[1];
                     const gradId = nodeGradientMap[sourceNodeId];
                     if (gradId && gradientToStroke[gradId]) {
                         path.setAttribute('stroke', gradientToStroke[gradId]);
