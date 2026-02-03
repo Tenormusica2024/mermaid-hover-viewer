@@ -303,15 +303,15 @@
 
         .detail-node-id {
             display: inline-block;
-            background: linear-gradient(135deg, #c4b5fd, #f9a8d4, #fcd34d);
-            color: #4c1d95;
+            background: linear-gradient(135deg, #818cf8, #22d3ee);
+            color: #ffffff;
             padding: 6px 16px;
             border-radius: 20px;
             font-size: 0.85rem;
             font-weight: 700;
             margin-bottom: 12px;
             letter-spacing: 0.5px;
-            box-shadow: 0 2px 8px rgba(196, 181, 253, 0.4);
+            box-shadow: 0 2px 8px rgba(129, 140, 248, 0.4);
         }
 
         .detail-text {
@@ -319,10 +319,10 @@
             color: #e2e8f0;
             font-size: 0.9rem;
             padding: 14px;
-            background: linear-gradient(135deg, rgba(196, 181, 253, 0.1), rgba(249, 168, 212, 0.05));
+            background: linear-gradient(135deg, rgba(129, 140, 248, 0.1), rgba(34, 211, 238, 0.05));
             border-radius: 10px;
             border-left: 3px solid;
-            border-image: linear-gradient(to bottom, #c4b5fd, #f9a8d4) 1;
+            border-image: linear-gradient(to bottom, #818cf8, #22d3ee) 1;
         }
 
         @keyframes fadeIn {
@@ -401,24 +401,24 @@
             filter: drop-shadow(0 0 16px rgba(196, 181, 253, 0.6));
         }
 
-        /* Locked node style - more prominent highlight */
+        /* Locked node style - cyan/teal accent for glassmorphism theme */
         .node-locked rect,
         .node-locked polygon,
         .node-locked circle,
         .node-locked ellipse,
         .node-locked path {
-            stroke: #f472b6 !important;
+            stroke: #22d3ee !important;
             stroke-width: 4px !important;
-            filter: drop-shadow(0 0 20px rgba(244, 114, 182, 0.7));
+            filter: drop-shadow(0 0 20px rgba(34, 211, 238, 0.6));
         }
 
         .node-locked {
-            animation: pulse-lock 1.5s ease-in-out infinite;
+            animation: pulse-lock 2s ease-in-out infinite;
         }
 
         @keyframes pulse-lock {
-            0%, 100% { filter: brightness(1.05) drop-shadow(0 6px 16px rgba(244, 114, 182, 0.4)); }
-            50% { filter: brightness(1.1) drop-shadow(0 8px 24px rgba(244, 114, 182, 0.6)); }
+            0%, 100% { filter: brightness(1.05) drop-shadow(0 4px 12px rgba(34, 211, 238, 0.3)); }
+            50% { filter: brightness(1.08) drop-shadow(0 6px 18px rgba(34, 211, 238, 0.5)); }
         }
 
         .error-message {
@@ -1358,7 +1358,7 @@
                     position: fixed;
                     bottom: 80px;
                     right: 30px;
-                    background: rgba(244, 114, 182, 0.9);
+                    background: linear-gradient(135deg, rgba(129, 140, 248, 0.95), rgba(34, 211, 238, 0.95));
                     color: white;
                     padding: 8px 16px;
                     border-radius: 6px;
@@ -1367,6 +1367,8 @@
                     z-index: 1000;
                     pointer-events: none;
                     transition: opacity 0.3s ease;
+                    backdrop-filter: blur(8px);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
                 `;
                 document.body.appendChild(hint);
             }
@@ -1557,11 +1559,11 @@
             const detailNodeId = document.querySelector('.detail-node-id');
             if (detailNodeId) {
                 if (themeName === 'minimal') {
-                    detailNodeId.style.background = 'linear-gradient(135deg, #3b82f6, #6366f1)';
+                    detailNodeId.style.background = 'linear-gradient(135deg, #3b82f6, #06b6d4)';
                     detailNodeId.style.color = '#fff';
                 } else {
-                    // glassmorphism (default)
-                    detailNodeId.style.background = 'linear-gradient(135deg, #a855f7, #ec4899, #f97316)';
+                    // glassmorphism (default) - indigo to cyan
+                    detailNodeId.style.background = 'linear-gradient(135deg, #818cf8, #22d3ee)';
                     detailNodeId.style.color = '#fff';
                 }
             }
