@@ -401,6 +401,26 @@
             filter: drop-shadow(0 0 16px rgba(196, 181, 253, 0.6));
         }
 
+        /* Locked node style - more prominent highlight */
+        .node-locked rect,
+        .node-locked polygon,
+        .node-locked circle,
+        .node-locked ellipse,
+        .node-locked path {
+            stroke: #f472b6 !important;
+            stroke-width: 4px !important;
+            filter: drop-shadow(0 0 20px rgba(244, 114, 182, 0.7));
+        }
+
+        .node-locked {
+            animation: pulse-lock 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-lock {
+            0%, 100% { filter: brightness(1.05) drop-shadow(0 6px 16px rgba(244, 114, 182, 0.4)); }
+            50% { filter: brightness(1.1) drop-shadow(0 8px 24px rgba(244, 114, 182, 0.6)); }
+        }
+
         .error-message {
             color: #ff6b6b;
             background: rgba(255,107,107,0.1);
@@ -473,7 +493,7 @@
     <div class="header">
         <div>
             <h1>Mermaid Hover Detail Viewer</h1>
-            <p>ノードにマウスオーバーで詳細表示 | 枠線ドラッグでサイズ・レイアウト調整</p>
+            <p>ノードをホバーで詳細表示・クリックで固定 | 枠線ドラッグでサイズ・レイアウト調整</p>
         </div>
         <div style="display: flex; align-items: center; gap: 15px;">
             <select id="theme-selector" onchange="changeTheme(this.value)">
@@ -598,7 +618,7 @@
             <div class="panel detail-panel" id="panel-detail">
                 <div class="panel-header">Node Detail</div>
                 <div class="panel-content" id="detail-output">
-                    <div class="detail-placeholder">Hover over a node to see details</div>
+                    <div class="detail-placeholder">Hover to see details / Click to lock</div>
                 </div>
             </div>
         </div>
@@ -659,6 +679,8 @@
         let nodeDetails = {};
         let currentHighlight = null;
         let panzoomInstance = null;
+        let lockedNodeId = null;  // Locked node ID (persists after mouse leave)
+        let lockedNodeElement = null;  // Locked node element reference
 
         // ========== Diagram Rendering ==========
 
@@ -944,11 +966,28 @@
 
             const nodes = svgElement.querySelectorAll('.node');
 
+            // Reset lock state when re-rendering
+            lockedNodeId = null;
+            lockedNodeElement = null;
+
             nodes.forEach(node => {
                 const nodeId = extractNodeId(node);
 
                 if (nodeId) {
                     node.style.cursor = 'pointer';
+
+                    // Click to lock/unlock detail display
+                    node.addEventListener('click', (e) => {
+                        e.stopPropagation();
+
+                        if (lockedNodeId === nodeId) {
+                            // Clicking same node unlocks
+                            unlockNode();
+                        } else {
+                            // Lock this node
+                            lockNode(nodeId, node);
+                        }
+                    });
 
                     node.addEventListener('mouseenter', () => {
                         highlightNode(node);
@@ -956,11 +995,54 @@
                     });
 
                     node.addEventListener('mouseleave', () => {
-                        unhighlightNode(node);
-                        showDetail(null);
+                        // Only unhighlight if not locked, or if this isn't the locked node
+                        if (lockedNodeId !== nodeId) {
+                            unhighlightNode(node);
+                        }
+
+                        // Show locked node detail if exists, otherwise show placeholder
+                        if (lockedNodeId) {
+                            showDetail(lockedNodeId);
+                            // Re-highlight locked node
+                            if (lockedNodeElement) {
+                                highlightNode(lockedNodeElement);
+                            }
+                        } else {
+                            showDetail(null);
+                        }
                     });
                 }
             });
+
+            // Click outside nodes to unlock
+            svgElement.addEventListener('click', (e) => {
+                if (!e.target.closest('.node')) {
+                    unlockNode();
+                }
+            });
+        }
+
+        function lockNode(nodeId, nodeElement) {
+            // Clear previous lock highlight
+            if (lockedNodeElement && lockedNodeElement !== nodeElement) {
+                lockedNodeElement.classList.remove('node-locked');
+            }
+
+            lockedNodeId = nodeId;
+            lockedNodeElement = nodeElement;
+            nodeElement.classList.add('node-locked');
+            showDetail(nodeId);
+            showLockHint('Locked: ' + nodeId);
+        }
+
+        function unlockNode() {
+            if (lockedNodeElement) {
+                lockedNodeElement.classList.remove('node-locked');
+                lockedNodeElement.classList.remove('node-highlight');
+            }
+            lockedNodeId = null;
+            lockedNodeElement = null;
+            showDetail(null);
         }
 
         function extractNodeId(nodeElement) {
@@ -1005,7 +1087,7 @@
             const detailOutput = document.getElementById('detail-output');
 
             if (!nodeId || !nodeDetails[nodeId]) {
-                detailOutput.innerHTML = '<div class="detail-placeholder">Hover over a node to see details</div>';
+                detailOutput.innerHTML = '<div class="detail-placeholder">Hover to see details / Click to lock</div>';
                 return;
             }
 
@@ -1264,6 +1346,35 @@
                 document.removeEventListener('mousemove', onMouseMove);
                 document.removeEventListener('mouseup', onMouseUp);
             }
+        }
+
+        // Visual feedback for node lock
+        function showLockHint(text) {
+            let hint = document.getElementById('lock-hint');
+            if (!hint) {
+                hint = document.createElement('div');
+                hint.id = 'lock-hint';
+                hint.style.cssText = `
+                    position: fixed;
+                    bottom: 80px;
+                    right: 30px;
+                    background: rgba(244, 114, 182, 0.9);
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 6px;
+                    font-weight: 600;
+                    font-size: 12px;
+                    z-index: 1000;
+                    pointer-events: none;
+                    transition: opacity 0.3s ease;
+                `;
+                document.body.appendChild(hint);
+            }
+            hint.textContent = text;
+            hint.style.opacity = '1';
+            setTimeout(() => {
+                hint.style.opacity = '0';
+            }, 1500);
         }
 
         // Visual feedback for layout switch
