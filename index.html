@@ -791,6 +791,81 @@
                 });
             });
 
+            // Helper function to extract node ID from element
+            function extractNodeIdFromElement(node) {
+                let id = node.id;
+                if (id) {
+                    const match = id.match(/flowchart-([^-]+)-\d+|node-([^-]+)/);
+                    if (match) return match[1] || match[2];
+                    return id.replace(/^(flowchart-|node-)/, '').replace(/-\d+$/, '');
+                }
+                return null;
+            }
+
+            // Map gradient IDs to stroke colors for edges
+            const gradientToStroke = {
+                'grad-mint': '#6ee7b7',
+                'grad-peach': '#fcd34d',
+                'grad-lavender': '#a5b4fc',
+                'grad-rose': '#fca5a5',
+                'grad-sky': '#93c5fd',
+                'grad-violet': '#d8b4fe',
+                'grad-lime': '#bef264',
+                'grad-amber': '#fde047'
+            };
+
+            // Build node ID to gradient mapping
+            const nodeGradientMap = {};
+            nodes.forEach(node => {
+                const nodeId = extractNodeIdFromElement(node);
+                if (nodeId) {
+                    const shape = node.querySelector('rect, polygon, circle, ellipse, path');
+                    if (shape) {
+                        const fill = shape.getAttribute('fill') || '';
+                        for (const gradId of Object.keys(gradientToStroke)) {
+                            if (fill.includes(gradId)) {
+                                nodeGradientMap[nodeId] = gradId;
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Color edges based on source node
+            const edgePaths = svgElement.querySelectorAll('.edgePath path');
+            edgePaths.forEach(path => {
+                const parent = path.closest('.edgePath');
+                if (!parent) return;
+
+                // Try to extract source node from edge ID or class
+                const edgeId = parent.id || '';
+                // Mermaid edge IDs often follow pattern: L-NODEA-NODEB or flowchart-xxx-NODEA-xxx-NODEB
+                const match = edgeId.match(/L-([A-Za-z0-9_]+)-|flowchart-[^-]+-([A-Za-z0-9_]+)-/);
+                if (match) {
+                    const sourceNodeId = match[1] || match[2];
+                    const gradId = nodeGradientMap[sourceNodeId];
+                    if (gradId && gradientToStroke[gradId]) {
+                        path.setAttribute('stroke', gradientToStroke[gradId]);
+                    }
+                }
+            });
+
+            // Color arrow markers based on source node
+            const markers = svgElement.querySelectorAll('marker path');
+            markers.forEach(marker => {
+                const markerId = marker.closest('marker')?.id || '';
+                const match = markerId.match(/flowchart-[^-]+-([A-Za-z0-9_]+)-/);
+                if (match) {
+                    const sourceNodeId = match[1];
+                    const gradId = nodeGradientMap[sourceNodeId];
+                    if (gradId && gradientToStroke[gradId]) {
+                        marker.setAttribute('fill', gradientToStroke[gradId]);
+                        marker.setAttribute('stroke', gradientToStroke[gradId]);
+                    }
+                }
+            });
+
             // Style edge labels
             const edgeLabelRects = svgElement.querySelectorAll('.edgeLabel rect, .edgeLabel polygon');
             edgeLabelRects.forEach(el => {
