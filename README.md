@@ -1,4 +1,4 @@
-# Mermaid Hover Detail Viewer
+# Flowchart Hover Viewer
 
 Mermaid.js flowchart viewer with hover detail panel, resizable panels, and zoom/pan support.
 
