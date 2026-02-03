@@ -396,9 +396,9 @@
         .node-highlight circle,
         .node-highlight ellipse,
         .node-highlight path {
-            stroke: #a78bfa !important;
+            stroke: var(--highlight-color, #a78bfa) !important;
             stroke-width: 3px !important;
-            filter: drop-shadow(0 0 16px rgba(196, 181, 253, 0.6));
+            filter: drop-shadow(0 0 12px var(--highlight-glow, rgba(196, 181, 253, 0.6)));
         }
 
         /* Locked node style - dynamic color matching node's gradient */
@@ -1111,15 +1111,25 @@
         }
 
         function highlightNode(node) {
-            if (currentHighlight) {
+            if (currentHighlight && currentHighlight !== node) {
                 currentHighlight.classList.remove('node-highlight');
+                currentHighlight.style.removeProperty('--highlight-color');
+                currentHighlight.style.removeProperty('--highlight-glow');
             }
+
+            // Set highlight color matching node's gradient
+            const colors = getNodeLockColor(node);
+            node.style.setProperty('--highlight-color', colors.stroke);
+            node.style.setProperty('--highlight-glow', colors.glow);
+
             node.classList.add('node-highlight');
             currentHighlight = node;
         }
 
         function unhighlightNode(node) {
             node.classList.remove('node-highlight');
+            node.style.removeProperty('--highlight-color');
+            node.style.removeProperty('--highlight-glow');
             currentHighlight = null;
         }
 
