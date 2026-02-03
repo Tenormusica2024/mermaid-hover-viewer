@@ -844,7 +844,9 @@
                     const sourceNodeId = sourceMatch[1];
                     const gradId = nodeGradientMap[sourceNodeId];
                     if (gradId && gradientToStroke[gradId]) {
-                        path.setAttribute('stroke', gradientToStroke[gradId]);
+                        // Use inline style to override Mermaid CSS
+                        const color = gradientToStroke[gradId];
+                        path.setAttribute('style', `stroke: ${color} !important;`);
                     }
                 }
             });
@@ -858,8 +860,9 @@
                     const sourceNodeId = match[1];
                     const gradId = nodeGradientMap[sourceNodeId];
                     if (gradId && gradientToStroke[gradId]) {
-                        marker.setAttribute('fill', gradientToStroke[gradId]);
-                        marker.setAttribute('stroke', gradientToStroke[gradId]);
+                        // Use style to override CSS
+                        marker.style.fill = gradientToStroke[gradId];
+                        marker.style.stroke = gradientToStroke[gradId];
                     }
                 }
             });
