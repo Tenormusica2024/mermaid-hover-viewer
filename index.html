@@ -401,24 +401,25 @@
             filter: drop-shadow(0 0 16px rgba(196, 181, 253, 0.6));
         }
 
-        /* Locked node style - cyan/teal accent for glassmorphism theme */
+        /* Locked node style - dynamic color matching node's gradient */
         .node-locked rect,
         .node-locked polygon,
         .node-locked circle,
         .node-locked ellipse,
         .node-locked path {
-            stroke: #22d3ee !important;
+            stroke: var(--lock-color, #22d3ee) !important;
             stroke-width: 4px !important;
-            filter: drop-shadow(0 0 20px rgba(34, 211, 238, 0.6));
+            filter: drop-shadow(0 0 16px var(--lock-glow, rgba(34, 211, 238, 0.6)));
         }
 
         .node-locked {
             animation: pulse-lock 2s ease-in-out infinite;
+            --pulse-glow: var(--lock-glow, rgba(34, 211, 238, 0.5));
         }
 
         @keyframes pulse-lock {
-            0%, 100% { filter: brightness(1.05) drop-shadow(0 4px 12px rgba(34, 211, 238, 0.3)); }
-            50% { filter: brightness(1.08) drop-shadow(0 6px 18px rgba(34, 211, 238, 0.5)); }
+            0%, 100% { filter: brightness(1.05) drop-shadow(0 4px 12px var(--pulse-glow, rgba(34, 211, 238, 0.3))); }
+            50% { filter: brightness(1.1) drop-shadow(0 6px 20px var(--pulse-glow, rgba(34, 211, 238, 0.5))); }
         }
 
         .error-message {
@@ -1026,19 +1027,58 @@
             // Clear previous lock highlight
             if (lockedNodeElement && lockedNodeElement !== nodeElement) {
                 lockedNodeElement.classList.remove('node-locked');
+                lockedNodeElement.style.removeProperty('--lock-color');
+                lockedNodeElement.style.removeProperty('--lock-glow');
             }
 
             lockedNodeId = nodeId;
             lockedNodeElement = nodeElement;
+
+            // Detect node color and set matching lock effect
+            const lockColors = getNodeLockColor(nodeElement);
+            nodeElement.style.setProperty('--lock-color', lockColors.stroke);
+            nodeElement.style.setProperty('--lock-glow', lockColors.glow);
+
             nodeElement.classList.add('node-locked');
             showDetail(nodeId);
             showLockHint('Locked: ' + nodeId);
+        }
+
+        // Detect node's gradient/color and return matching lock effect colors
+        function getNodeLockColor(nodeElement) {
+            const shape = nodeElement.querySelector('rect, polygon, circle, ellipse, path');
+            if (!shape) return { stroke: '#22d3ee', glow: 'rgba(34, 211, 238, 0.6)' };
+
+            const fill = shape.getAttribute('fill') || '';
+
+            // Match gradient ID to corresponding accent color
+            const colorMap = {
+                'grad-mint':     { stroke: '#34d399', glow: 'rgba(52, 211, 153, 0.6)' },   // Emerald
+                'grad-peach':    { stroke: '#fbbf24', glow: 'rgba(251, 191, 36, 0.6)' },   // Amber
+                'grad-lavender': { stroke: '#818cf8', glow: 'rgba(129, 140, 248, 0.6)' }, // Indigo
+                'grad-rose':     { stroke: '#fb7185', glow: 'rgba(251, 113, 133, 0.6)' }, // Rose
+                'grad-sky':      { stroke: '#38bdf8', glow: 'rgba(56, 189, 248, 0.6)' },  // Sky
+                'grad-violet':   { stroke: '#a78bfa', glow: 'rgba(167, 139, 250, 0.6)' }, // Violet
+                'grad-lime':     { stroke: '#a3e635', glow: 'rgba(163, 230, 53, 0.6)' },  // Lime
+                'grad-amber':    { stroke: '#fbbf24', glow: 'rgba(251, 191, 36, 0.6)' }   // Amber
+            };
+
+            for (const [gradId, colors] of Object.entries(colorMap)) {
+                if (fill.includes(gradId)) {
+                    return colors;
+                }
+            }
+
+            // Default cyan for unmatched
+            return { stroke: '#22d3ee', glow: 'rgba(34, 211, 238, 0.6)' };
         }
 
         function unlockNode() {
             if (lockedNodeElement) {
                 lockedNodeElement.classList.remove('node-locked');
                 lockedNodeElement.classList.remove('node-highlight');
+                lockedNodeElement.style.removeProperty('--lock-color');
+                lockedNodeElement.style.removeProperty('--lock-glow');
             }
             lockedNodeId = null;
             lockedNodeElement = null;
